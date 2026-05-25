@@ -1,0 +1,23 @@
+{
+  "name": "The Richendollars",
+  "short_name": "Richendollars",
+  "description": "Private family intranet and home dashboard.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/richendollars-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/richendollars-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

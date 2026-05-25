@@ -1,0 +1,15 @@
+{
+  "articles": [
+    {
+      "id": "ULVKsEcGolY",
+      "title": "Honey Garlic Tofu",
+      "category": "Recipes",
+      "body": "Ingredients\nTofu:\n\n    1 block tofu (firm or extra firm)\n    1 Tbsp avocado oil (or other neutral oil)\n    Salt + pepper\n    1 Tbsp cornstarch\n\nHoney Garlic Sauce:\n\n    3 Tbsp toasted sesame oil\n    3-4 large cloves garlic, minced\n    3 Tbsp honey\n    1 Tbsp soy sauce (or tamari)\n    1 tsp rice vinegar\n    1 tsp cornstarch (mix with 1 tsp water to form slurry)\n\nOptional Garnish:\n\n    Sesame seeds\n    Green onion\n    Salt + pepper, to taste\nInstructions\n\n1. Preheat oven to 400F. Line a baking sheet with parchment paper.\n    \n2. Cut block of tofu into 1/2-inch to 1-inch cubes (see note). Take a paper towel and press the cubes gently to remove as much water as you can.\n\n3.Transfer the tofu to a bowl and toss in avocado oil, salt, and pepper. Add 1 tablespoon of cornstarch to the tofu and toss it again.\n\n4. Spread the tofu out onto a baking sheet and transfer to the oven for 20 minutes, flipping halfway through with a set of tongs.\n\n5. While the tofu is in the oven, prepare the honey garlic sauce on the stove. Start by heating up sesame oil in a small saucepan over medium. Add minced garlic and sauté for a couple minutes.\n\n6. Then, add in honey, soy sauce, rice vinegar, and cornstarch slurry. Bring ingredients to a boil and stir continuously for about 30-60 seconds as the sauce thickens. Remove from heat.\n\n7. Remove the tofu from the oven and toss in the honey garlic sauce. Serve with sides (see notes for ideas) and add optional garnish as desired. Enjoy immediately!\n\nNotes\n*SERVINGS: This recipe as written will make between 2-4 servings, depending on your unique needs and hunger levels.\n*LEFTOVERS:\n\n    Leftovers of this recipe will keep in an airtight container in the fridge for about 2-3 days. That said, the texture will be best right after cooking – I would try to eat any leftovers the next day, if possible!\n    You can easily reheat tofu in the microwave. Do note that the tofu may loose it’s crispness when stored in the sauce and when reheated.",
+      "url": "https://www.walderwellness.com/honey-garlic-tofu-soy-sesame/#recipe",
+      "createdAt": "5/25/2026, 4:58:14 PM",
+      "updatedAt": "5/25/2026, 5:12:24 PM"
+    }
+  ],
+  "events": [],
+  "$schema": "./node_modules/json-server/schema.json"
+}

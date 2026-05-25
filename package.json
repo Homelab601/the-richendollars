@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "dev": "concurrently \"vite --host 0.0.0.0\" \"node server.js\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "cors": "latest",
+    "express": "latest",
+    "json-server": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "socket.io": "latest",
+    "socket.io-client": "^4.8.3",
+    "vite": "latest"
+  }
+}
