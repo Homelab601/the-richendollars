@@ -63,6 +63,10 @@ function formatUptime(ms) {
   return `${hours}h ${minutes}m ${seconds}s`;
 }
 
+function isDockerRunning() {
+  return process.env.DOCKER_CONTAINER === "true" || fs.existsSync("/.dockerenv");
+}
+
 /* HEALTH */
 
 app.get("/health", (req, res) => {
@@ -82,16 +86,19 @@ app.get("/health", (req, res) => {
   }
 
   const memory = process.memoryUsage();
+  const dockerRunning = isDockerRunning();
 
   res.json({
     app: "The Richendollars",
     status: "online",
+
     backend: {
       status: "online",
       port: 3001,
       uptime: formatUptime(Date.now() - startedAt),
       startedAt: new Date(startedAt).toLocaleString(),
     },
+
     database: {
       status: dbHealthy ? "connected" : "error",
       file: DB_FILE,
@@ -99,10 +106,12 @@ app.get("/health", (req, res) => {
       articles: articleCount,
       fridgeNotes: fridgeNoteCount,
     },
+
     websocket: {
       status: "enabled",
       connectedDevices,
     },
+
     host: {
       hostname: os.hostname(),
       platform: os.platform(),
@@ -111,13 +120,15 @@ app.get("/health", (req, res) => {
       freeMemoryMb: Math.round(os.freemem() / 1024 / 1024),
       totalMemoryMb: Math.round(os.totalmem() / 1024 / 1024),
     },
+
     process: {
       nodeVersion: process.version,
       memoryUsedMb: Math.round(memory.rss / 1024 / 1024),
     },
+
     future: {
       ryze: "pending",
-      docker: "planned",
+      docker: dockerRunning ? "running" : "not detected",
       tailscale: "planned",
       viktorAi: "future",
     },
@@ -178,9 +189,7 @@ app.get("/fridge-notes", (req, res) => {
 
 app.post("/fridge-notes", (req, res) => {
   const db = readDb();
-
   db.fridgeNotes.push(req.body);
-
   writeDb(db);
 
   io.emit("fridgeNotesUpdated", db.fridgeNotes);
@@ -205,9 +214,7 @@ app.put("/fridge-notes/:id", (req, res) => {
 app.delete("/fridge-notes/:id", (req, res) => {
   const db = readDb();
 
-  db.fridgeNotes = db.fridgeNotes.filter(
-    (note) => note.id !== req.params.id
-  );
+  db.fridgeNotes = db.fridgeNotes.filter((note) => note.id !== req.params.id);
 
   writeDb(db);
 
@@ -215,6 +222,8 @@ app.delete("/fridge-notes/:id", (req, res) => {
 
   res.sendStatus(204);
 });
+
+/* SOCKET.IO */
 
 io.on("connection", (socket) => {
   connectedDevices += 1;

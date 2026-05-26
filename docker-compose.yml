@@ -17,3 +17,4 @@ services:
 
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - DOCKER_CONTAINER=true
