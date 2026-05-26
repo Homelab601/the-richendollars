@@ -1,21 +1,16 @@
 import NewsWidget from "./NewsWidget";
 import RedsWidget from "./RedsWidget";
+import WeatherWidget from "./WeatherWidget";
+import FridgeNotes from "./FridgeNotes";
 
-export default function HomePage({
-  news,
-  redsGames,
-}) {
+export default function HomePage({ news, redsGames, socket }) {
   return (
     <section className="home-layout">
       <div className="card calendar-card">
         <div className="card-header">
           <div>
             <h2>Family Calendar</h2>
-
-            <p>
-              The Richendollars Family
-              Schedule
-            </p>
+            <p>The Richendollars Family Schedule</p>
           </div>
         </div>
 
@@ -27,9 +22,12 @@ export default function HomePage({
 
       <div className="bottom-widgets">
         <NewsWidget news={news} />
-
         <RedsWidget redsGames={redsGames} />
       </div>
+
+      <WeatherWidget />
+
+      <FridgeNotes socket={socket} />
     </section>
   );
 }

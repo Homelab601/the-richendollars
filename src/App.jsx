@@ -7,6 +7,7 @@ import HomePage from "./components/HomePage";
 import ArticleList from "./components/ArticleList";
 import ArticleDetail from "./components/ArticleDetail";
 import ArticleForm from "./components/ArticleForm";
+import AdminPage from "./components/AdminPage";
 
 const API_URL = `${window.location.protocol}//${window.location.hostname}:3001`;
 const socket = io(API_URL);
@@ -17,6 +18,7 @@ const categories = [
   "Recipes",
   "Homelab",
   "Helpful Links",
+  "Admin",
 ];
 
 export default function App() {
@@ -30,6 +32,7 @@ export default function App() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingArticle, setEditingArticle] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [selectedArticle, setSelectedArticle] = useState(() => {
     const saved = localStorage.getItem("selectedArticle");
@@ -85,6 +88,7 @@ export default function App() {
     try {
       const start = new Date();
       const end = new Date();
+
       end.setDate(start.getDate() + 14);
 
       const startDate = start.toISOString().split("T")[0];
@@ -128,12 +132,17 @@ export default function App() {
     setShowForm(false);
     setSelectedArticle(null);
     setEditingArticle(null);
+    setSearchTerm("");
   }
 
   function openNewArticle() {
     setSelectedArticle(null);
     setEditingArticle(null);
-    setForm({ title: "", body: "", url: "" });
+    setForm({
+      title: "",
+      body: "",
+      url: "",
+    });
     setShowForm(true);
   }
 
@@ -149,7 +158,11 @@ export default function App() {
   }
 
   function resetForm() {
-    setForm({ title: "", body: "", url: "" });
+    setForm({
+      title: "",
+      body: "",
+      url: "",
+    });
     setEditingArticle(null);
     setShowForm(false);
   }
@@ -157,8 +170,8 @@ export default function App() {
   async function createOrUpdateArticle(e) {
     e.preventDefault();
 
-    if (!form.title.trim() || activePage === "Home") {
-      alert("Please enter a title and make sure you are not on the Home page.");
+    if (!form.title.trim() || activePage === "Home" || activePage === "Admin") {
+      alert("Please enter a title and make sure you are on an article page.");
       return;
     }
 
@@ -174,7 +187,9 @@ export default function App() {
       try {
         const res = await fetch(`${API_URL}/articles/${editingArticle.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(updatedArticle),
         });
 
@@ -202,7 +217,9 @@ export default function App() {
     try {
       const res = await fetch(`${API_URL}/articles`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(newArticle),
       });
 
@@ -231,9 +248,25 @@ export default function App() {
   }
 
   const pageArticles = useMemo(() => {
-    if (activePage === "Home") return [];
-    return articles.filter((article) => article.category === activePage);
-  }, [articles, activePage]);
+    if (activePage === "Home" || activePage === "Admin") return [];
+
+    const categoryArticles = articles.filter(
+      (article) => article.category === activePage
+    );
+
+    if (!searchTerm.trim()) return categoryArticles;
+
+    const search = searchTerm.toLowerCase();
+
+    return categoryArticles.filter((article) => {
+      return (
+        article.title?.toLowerCase().includes(search) ||
+        article.body?.toLowerCase().includes(search) ||
+        article.url?.toLowerCase().includes(search) ||
+        article.category?.toLowerCase().includes(search)
+      );
+    });
+  }, [articles, activePage, searchTerm]);
 
   return (
     <div className="app">
@@ -247,25 +280,47 @@ export default function App() {
         <header className="hero">
           <div>
             <p className="eyebrow">The Richendollars</p>
+
             <h1>{activePage === "Home" ? "Welcome Home" : activePage}</h1>
+
             <p>
               {activePage === "Home"
                 ? "Your private family command center."
+                : activePage === "Admin"
+                ? "Protected tools, backups, and homelab status."
                 : `Articles and notes for ${activePage}.`}
             </p>
           </div>
 
-          {activePage !== "Home" && !showForm && !selectedArticle && (
-            <button className="gold-button" onClick={openNewArticle}>
-              + New {activePage === "Recipes" ? "Recipe" : "Article"}
-            </button>
-          )}
+          {activePage !== "Home" &&
+            activePage !== "Admin" &&
+            !showForm &&
+            !selectedArticle && (
+              <button className="gold-button" onClick={openNewArticle}>
+                + New {activePage === "Recipes" ? "Recipe" : "Article"}
+              </button>
+            )}
         </header>
 
         {activePage === "Home" ? (
-          <HomePage news={news} redsGames={redsGames} />
+          <HomePage news={news} redsGames={redsGames} socket={socket} />
+        ) : activePage === "Admin" ? (
+          <AdminPage apiUrl={API_URL} />
         ) : (
           <section className="article-page">
+            {!showForm && !selectedArticle && (
+              <div className="card search-card">
+                <label>
+                  Search {activePage}
+                  <input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search titles, notes, recipes, links..."
+                  />
+                </label>
+              </div>
+            )}
+
             {showForm && (
               <ArticleForm
                 activePage={activePage}
