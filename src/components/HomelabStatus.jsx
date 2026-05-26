@@ -73,9 +73,15 @@ export default function HomelabStatus() {
     {
       name: "Docker",
       status: health.future.docker,
-      detail: "Container deployment planned",
-      level: "pending",
-    },
+      detail:health.future.docker === "running"
+      ? "Container deployment active"
+      : "Container deployment planned",
+
+     level:
+      health.future.docker === "running"
+      ? "online"
+      : "pending",
+},
     {
       name: "Viktor AI",
       status: health.future.viktorAi,
