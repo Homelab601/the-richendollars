@@ -66,9 +66,21 @@ export default function HomelabStatus() {
     },
     {
       name: "Ryze",
-      status: health.future.ryze,
-      detail: "Future production host",
-      level: "pending",
+      status: "online",
+      detail: "Proxmox Host • 192.168.1.20",
+      level: "online",
+    },
+    {
+      name: "PinkWard",
+      status: "online",
+      detail: "Monitoring Stack • 192.168.1.31",
+       level: "online",
+    },
+    {
+        name: "Hexgate",
+        status: "planned",
+        detail: "Gateway / Utility Services • 192.168.1.32",
+        level: "pending",
     },
     {
       name: "Docker",
@@ -81,7 +93,7 @@ export default function HomelabStatus() {
       health.future.docker === "running"
       ? "online"
       : "pending",
-},
+    },
     {
       name: "Viktor AI",
       status: health.future.viktorAi,
