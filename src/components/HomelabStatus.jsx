@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "/health";
+const API_URL = "";
 
 export default function HomelabStatus() {
   const [health, setHealth] = useState(null);
