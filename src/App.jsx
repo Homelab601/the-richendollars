@@ -10,7 +10,10 @@ import ArticleForm from "./components/ArticleForm";
 import AdminPage from "./components/AdminPage";
 
 const API_URL = "";
-const socket = io(API_URL);
+const socket = io("/", {
+  path: "/socket.io",
+  transports: ["websocket", "polling"],
+});
 
 const categories = [
   "House Info",
@@ -55,6 +58,10 @@ export default function App() {
     const redsInterval = setInterval(fetchRedsGames, 30000);
     const newsInterval = setInterval(fetchLocalNews, 300000);
 
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+    });
+
     socket.on("articlesUpdated", (updatedArticles) => {
       setArticles([...updatedArticles].reverse());
     });
@@ -62,6 +69,7 @@ export default function App() {
     return () => {
       clearInterval(redsInterval);
       clearInterval(newsInterval);
+      socket.off("connect_error");
       socket.off("articlesUpdated");
     };
   }, []);
@@ -198,7 +206,7 @@ export default function App() {
         resetForm();
         setSelectedArticle(updatedArticle);
       } catch (err) {
-        alert(`Could not update article.\nBackend used:\n${API_URL}`);
+        alert(`Could not update article.\nBackend used:\n${API_URL || "same origin"}`);
         console.error("Failed to update article:", err);
       }
 
@@ -227,7 +235,7 @@ export default function App() {
 
       resetForm();
     } catch (err) {
-      alert(`Could not save article.\nBackend used:\n${API_URL}`);
+      alert(`Could not save article.\nBackend used:\n${API_URL || "same origin"}`);
       console.error("Failed to create article:", err);
     }
   }
