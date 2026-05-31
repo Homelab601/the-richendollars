@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const os = require("os");
+const net = require("net");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
@@ -67,9 +68,34 @@ function isDockerRunning() {
   return process.env.DOCKER_CONTAINER === "true" || fs.existsSync("/.dockerenv");
 }
 
+function checkTcpHost(host, port, timeout = 1500) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+
+    socket.setTimeout(timeout);
+
+    socket.on("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+
+    socket.on("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+
+    socket.connect(port, host);
+  });
+}
+
 /* HEALTH */
 
-app.get("/health", (req, res) => {
+app.get("/health", async (req, res) => {
   const dbExists = fs.existsSync(DB_FILE);
 
   let dbHealthy = false;
@@ -87,6 +113,20 @@ app.get("/health", (req, res) => {
 
   const memory = process.memoryUsage();
   const dockerRunning = isDockerRunning();
+
+  const [
+    ryzeOnline,
+    pinkwardOnline,
+    grafanaOnline,
+    hexgateOnline,
+    viktorOnline,
+  ] = await Promise.all([
+    checkTcpHost("192.168.1.20", 8006),
+    checkTcpHost("192.168.1.31", 3002),
+    checkTcpHost("192.168.1.31", 3003),
+    checkTcpHost("192.168.1.32", 81),
+    checkTcpHost("192.168.1.40", 11434),
+  ]);
 
   res.json({
     app: "The Richendollars",
@@ -126,11 +166,22 @@ app.get("/health", (req, res) => {
       memoryUsedMb: Math.round(memory.rss / 1024 / 1024),
     },
 
+    infrastructure: {
+      ryze: ryzeOnline ? "online" : "offline",
+      pinkward: pinkwardOnline ? "online" : "offline",
+      grafana: grafanaOnline ? "online" : "offline",
+      hexgate: hexgateOnline ? "online" : "offline",
+      viktor: viktorOnline ? "online" : "offline",
+    },
+
     future: {
-      ryze: "pending",
+      ryze: ryzeOnline ? "online" : "offline",
+      pinkward: pinkwardOnline ? "online" : "offline",
+      grafana: grafanaOnline ? "online" : "offline",
+      hexgate: hexgateOnline ? "online" : "offline",
       docker: dockerRunning ? "running" : "not detected",
-      tailscale: "planned",
-      viktorAi: "future",
+      tailscale: "active",
+      viktorAi: viktorOnline ? "online" : "future",
     },
   });
 });
