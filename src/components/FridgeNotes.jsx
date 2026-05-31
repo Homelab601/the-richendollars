@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = `${window.location.protocol}//${window.location.hostname}:3001`;
+const API_URL = "";
 
 export default function FridgeNotes({ socket }) {
   const [notes, setNotes] = useState([]);

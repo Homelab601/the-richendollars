@@ -9,7 +9,7 @@ import ArticleDetail from "./components/ArticleDetail";
 import ArticleForm from "./components/ArticleForm";
 import AdminPage from "./components/AdminPage";
 
-const API_URL = `${window.location.protocol}//${window.location.hostname}:3001`;
+const API_URL = "";
 const socket = io(API_URL);
 
 const categories = [
