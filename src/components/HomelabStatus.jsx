@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = `${window.location.protocol}//${window.location.hostname}:3001`;
+const API_URL = "/api";
 
 export default function HomelabStatus() {
   const [health, setHealth] = useState(null);
@@ -74,25 +74,22 @@ export default function HomelabStatus() {
       name: "PinkWard",
       status: "online",
       detail: "Monitoring Stack • 192.168.1.31",
-       level: "online",
+      level: "online",
     },
     {
-        name: "Hexgate",
-        status: "planned",
-        detail: "Gateway / Utility Services • 192.168.1.32",
-        level: "pending",
+      name: "Hexgate",
+      status: "planned",
+      detail: "Gateway / Utility Services • 192.168.1.32",
+      level: "pending",
     },
     {
       name: "Docker",
       status: health.future.docker,
-      detail:health.future.docker === "running"
-      ? "Container deployment active"
-      : "Container deployment planned",
-
-     level:
-      health.future.docker === "running"
-      ? "online"
-      : "pending",
+      detail:
+        health.future.docker === "running"
+          ? "Container deployment active"
+          : "Container deployment planned",
+      level: health.future.docker === "running" ? "online" : "pending",
     },
     {
       name: "Viktor AI",
