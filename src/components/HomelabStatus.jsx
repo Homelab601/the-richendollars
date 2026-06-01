@@ -24,6 +24,12 @@ export default function HomelabStatus() {
     }
   }
 
+  function getLevel(status) {
+    return status === "online" || status === "connected" || status === "enabled" || status === "running"
+      ? "online"
+      : "offline";
+  }
+
   if (!health) {
     return (
       <div className="card">
@@ -38,19 +44,19 @@ export default function HomelabStatus() {
       name: "Backend",
       status: health.backend.status,
       detail: `Port ${health.backend.port} • Uptime ${health.backend.uptime}`,
-      level: "online",
+      level: getLevel(health.backend.status),
     },
     {
       name: "Database",
       status: health.database.status,
       detail: `${health.database.articles} articles • ${health.database.fridgeNotes} fridge notes`,
-      level: health.database.status === "connected" ? "online" : "offline",
+      level: getLevel(health.database.status),
     },
     {
       name: "Live Sync",
       status: health.websocket.status,
       detail: `${health.websocket.connectedDevices} device(s) connected`,
-      level: "online",
+      level: getLevel(health.websocket.status),
     },
     {
       name: "Host",
@@ -66,21 +72,27 @@ export default function HomelabStatus() {
     },
     {
       name: "Ryze",
-      status: "online",
-      detail: "Proxmox Host • 192.168.1.20",
-      level: "online",
+      status: health.infrastructure.ryze,
+      detail: "Proxmox Host • 192.168.1.20:8006",
+      level: getLevel(health.infrastructure.ryze),
     },
     {
       name: "PinkWard",
-      status: "online",
-      detail: "Monitoring Stack • 192.168.1.31",
-      level: "online",
+      status: health.infrastructure.pinkward,
+      detail: "Uptime Kuma • 192.168.1.31:3002",
+      level: getLevel(health.infrastructure.pinkward),
+    },
+    {
+      name: "Grafana",
+      status: health.infrastructure.grafana,
+      detail: "Monitoring Dashboard • 192.168.1.31:3003",
+      level: getLevel(health.infrastructure.grafana),
     },
     {
       name: "Hexgate",
-      status: "planned",
-      detail: "Gateway / Utility Services • 192.168.1.32",
-      level: "pending",
+      status: health.infrastructure.hexgate,
+      detail: "Nginx Proxy Manager • 192.168.1.32:81",
+      level: getLevel(health.infrastructure.hexgate),
     },
     {
       name: "Docker",
@@ -88,14 +100,14 @@ export default function HomelabStatus() {
       detail:
         health.future.docker === "running"
           ? "Container deployment active"
-          : "Container deployment planned",
-      level: health.future.docker === "running" ? "online" : "pending",
+          : "Container deployment not detected",
+      level: getLevel(health.future.docker),
     },
     {
       name: "Viktor AI",
-      status: health.future.viktorAi,
-      detail: "Future voice/AI assistant",
-      level: "offline",
+      status: health.infrastructure.viktor,
+      detail: "Future voice/AI assistant • 192.168.1.40:11434",
+      level: getLevel(health.infrastructure.viktor),
     },
   ];
 
