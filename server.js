@@ -3,8 +3,29 @@ const cors = require("cors");
 const fs = require("fs");
 const os = require("os");
 const net = require("net");
+const https = require("https");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+
+function loadEnv() {
+  if (!fs.existsSync(".env")) return;
+
+  const lines = fs.readFileSync(".env", "utf8").split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const [key, ...valueParts] = trimmed.split("=");
+    const value = valueParts.join("=");
+
+    if (key && value && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnv();
 
 const app = express();
 const httpServer = createServer(app);
@@ -64,6 +85,19 @@ function formatUptime(ms) {
   return `${hours}h ${minutes}m ${seconds}s`;
 }
 
+function formatSeconds(seconds) {
+  return formatUptime(seconds * 1000);
+}
+
+function formatGb(bytes) {
+  return Math.round((bytes / 1024 / 1024 / 1024) * 10) / 10;
+}
+
+function percent(used, total) {
+  if (!total) return 0;
+  return Math.round((used / total) * 1000) / 10;
+}
+
 function isDockerRunning() {
   return process.env.DOCKER_CONTAINER === "true" || fs.existsSync("/.dockerenv");
 }
@@ -93,6 +127,95 @@ function checkTcpHost(host, port, timeout = 1500) {
   });
 }
 
+function proxmoxRequest(path) {
+  return new Promise((resolve) => {
+    const host = process.env.PROXMOX_HOST;
+    const tokenId = process.env.PROXMOX_TOKEN_ID;
+    const tokenSecret = process.env.PROXMOX_TOKEN_SECRET;
+
+    if (!host || !tokenId || !tokenSecret) {
+      resolve(null);
+      return;
+    }
+
+    const options = {
+      hostname: host,
+      port: 8006,
+      path,
+      method: "GET",
+      rejectUnauthorized: false,
+      headers: {
+        Authorization: `PVEAPIToken=${tokenId}=${tokenSecret}`,
+      },
+      timeout: 3000,
+    };
+
+    const req = https.request(options, (res) => {
+      let body = "";
+
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(null);
+    });
+
+    req.on("error", () => {
+      resolve(null);
+    });
+
+    req.end();
+  });
+}
+
+async function getProxmoxMetrics() {
+  const nodesResponse = await proxmoxRequest("/api2/json/nodes");
+
+  if (!nodesResponse || !Array.isArray(nodesResponse.data)) {
+    return {
+      status: "unavailable",
+      detail: "Proxmox API unavailable",
+    };
+  }
+
+  const ryze = nodesResponse.data.find((node) => node.node === "ryze") || nodesResponse.data[0];
+
+  if (!ryze) {
+    return {
+      status: "unavailable",
+      detail: "Ryze node not found",
+    };
+  }
+
+  return {
+    status: ryze.status || "unknown",
+    node: ryze.node,
+    cpuPercent: Math.round((ryze.cpu || 0) * 1000) / 10,
+    cpuCores: ryze.maxcpu || 0,
+
+    memoryUsedGb: formatGb(ryze.mem || 0),
+    memoryTotalGb: formatGb(ryze.maxmem || 0),
+    memoryPercent: percent(ryze.mem || 0, ryze.maxmem || 0),
+
+    diskUsedGb: formatGb(ryze.disk || 0),
+    diskTotalGb: formatGb(ryze.maxdisk || 0),
+    diskPercent: percent(ryze.disk || 0, ryze.maxdisk || 0),
+
+    uptime: formatSeconds(ryze.uptime || 0),
+  };
+}
+
 /* HEALTH */
 
 app.get("/health", async (req, res) => {
@@ -120,12 +243,14 @@ app.get("/health", async (req, res) => {
     grafanaOnline,
     hexgateOnline,
     viktorOnline,
+    proxmoxMetrics,
   ] = await Promise.all([
     checkTcpHost("192.168.1.20", 8006),
     checkTcpHost("192.168.1.31", 3002),
     checkTcpHost("192.168.1.31", 3003),
     checkTcpHost("192.168.1.32", 81),
     checkTcpHost("192.168.1.40", 11434),
+    getProxmoxMetrics(),
   ]);
 
   res.json({
@@ -174,6 +299,8 @@ app.get("/health", async (req, res) => {
       viktor: viktorOnline ? "online" : "offline",
     },
 
+    proxmox: proxmoxMetrics,
+
     future: {
       ryze: ryzeOnline ? "online" : "offline",
       pinkward: pinkwardOnline ? "online" : "offline",
@@ -220,9 +347,7 @@ app.put("/articles/:id", (req, res) => {
 app.delete("/articles/:id", (req, res) => {
   const db = readDb();
 
-  db.articles = db.articles.filter(
-    (article) => article.id !== req.params.id
-  );
+  db.articles = db.articles.filter((article) => article.id !== req.params.id);
 
   writeDb(db);
 
